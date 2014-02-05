@@ -43,7 +43,7 @@ io.sockets.on('connection', function(socket) {
             }
             socket.join(data.room);
             socket.set('room', data.room);
-            socket.set('color', 'bar');
+            socket.set('color', '#FB6B5B');
             socket.set('pid', -1);
             games[data.room].player2 = socket
             // Set opponents
@@ -64,7 +64,7 @@ io.sockets.on('connection', function(socket) {
         else {
             socket.join(data.room);
             socket.set('room', data.room);
-            socket.set('color', 'foo');
+            socket.set('color', '#FFC333');
             socket.set('pid', 1);
             socket.set('turn', false);
             games[data.room] = {
@@ -73,6 +73,35 @@ io.sockets.on('connection', function(socket) {
             };
             socket.emit('assign', {pid: 1});
         }
+    });
+
+    socket.on('click', function(data) {
+        async.parallel([
+            socket.get.bind(this, 'turn'),
+            socket.get.bind(this, 'opponent'),
+            socket.get.bind(this, 'room'),
+            socket.get.bind(this, 'pid')
+        ], function(err, results) {
+            if(results[0]) {
+                socket.set('turn', false);
+                results[1].set('turn', true);
+
+                var i = 5;
+                while(i >= 0) {
+                    if(games[results[2]].board[i][data.column] == 0) {
+                        break;
+                    }
+                    i--;
+                }
+                if(i >= 0 && data.column >= 0) {
+                    games[results[2]].board[i][data.column] = results[3];
+                    socket.get('color', function(err, color) {
+                        socket.emit('drop', {row: i, column: data.column, color: color});
+                        results[1].emit('drop', {row: i, column: data.column, color: color});
+                    });
+                }
+            }
+        });
     });
 });
 

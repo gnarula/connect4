@@ -44,4 +44,28 @@ $(document).ready(function() {
                 alertify.success('Players Connected! Opponent\'s turn');
         }
     });
+
+    $('.box').click(function() {
+        // find the box to drop the disc to
+        var click = {
+            row: $(this).data('row'),
+            column: $(this).data('column')
+        };
+        socket.emit('click', click);
+    });
+
+    socket.on('drop', function(data) {
+        var row = 0;
+        stopVal = setInterval(function() {
+            if(row == data.row)
+                clearInterval(stopVal);
+            fillBox(row, data.column, data.color);
+            row++;
+        }, 25);
+    });
+
+    function fillBox(row, column, color) {
+        $('[data-row="'+(row-1)+'"][data-column="'+column+'"]').css('background', '');
+        $('[data-row="'+row+'"][data-column="'+column+'"]').css('background', color);
+    }
 });
