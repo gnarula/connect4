@@ -11766,4 +11766,32 @@ if (typeof jQuery === 'undefined') { throw new Error('Bootstrap requires jQuery'
         $('[data-row="'+(row-1)+'"][data-column="'+column+'"]').css('background', '');
         $('[data-row="'+row+'"][data-column="'+column+'"]').css('background', color);
     }
+
+    socket.on('reset', function(data) {
+        if(data.highlight) {
+            setTimeout(function() {
+                data.highlight.forEach(function(pair) {
+                    $('[data-row="'+pair[0]+'"][data-column="'+pair[1]+'"]').css('background-color', '#65BD77');
+                });
+            }, 500);
+        }
+
+        setTimeout(function() {
+            $('td').css('background-color', '')
+            alertify.confirm(data.text, function(e) {
+                if(e) {
+                    socket.emit('continue');
+                }
+                else {
+                    window.location = '/landingPage';
+                }
+            });
+        }, 1200)
+
+        // Set Scores
+        p1 = parseInt($('.p1-score p').html())+data['inc'][0];
+        $('.p1-score p').html(p1);
+        p2 = parseInt($('.p2-score p').html())+data['inc'][1];
+        $('.p2-score p').html(p2);
+    });
 });

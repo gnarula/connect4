@@ -31,6 +31,110 @@ function generateRoom(length) {
     return room;
 };
 
+// Helper function
+function getPair(row, column, step) {
+    l = [];
+    for(var i = 0; i < 4; i++) {
+        l.push([row, column]);
+        row += step[0];
+        column += step[1];
+    }
+    return l;
+}
+
+// a list to hold win cases
+var check = [];
+
+check.push(function check_horizontal(room, row, startColumn, callback) {
+    for(var i = 1; i < 5; i++) {
+        var count = 0;
+        var column = startColumn + 1 - i;
+        var columnEnd = startColumn + 4 - i;
+        if(columnEnd > 6 || column < 0) {
+            continue;
+        }
+        var pairs = getPair(row, column, [0,1]);
+        for(var j = column; j < columnEnd + 1; j++) {
+            count += games[room]['board'][row][j];
+        }
+        if(count == 4)
+            callback(1, pairs);
+        else if(count == -4)
+            callback(2, pairs);
+    }
+});
+
+check.push(function check_vertical(room, startRow, column, callback) {
+    for(var i = 1; i < 5; i++) {
+        var count = 0;
+        var row = startRow + 1 - i;
+        var rowEnd = startRow + 4 - i;
+        if(rowEnd > 5 || row < 0) {
+            continue;
+        }
+        var pairs = getPair(row, column, [1,0]);
+        for(var j = row; j < rowEnd + 1; j++) {
+            count += games[room]['board'][j][column];
+        }
+        if(count == 4)
+            callback(1, pairs);
+        else if(count == -4)
+            callback(2, pairs);
+    }
+});
+
+check.push(function check_leftDiagonal(room, startRow, startColumn, callback) {
+    for(var i = 1; i < 5; i++) {
+        var count = 0;
+        var row = startRow + 1 - i;
+        var rowEnd = startRow + 4 - i;
+        var column = startColumn + 1 - i;
+        var columnEnd = startColumn + 4 - i;
+        if(column < 0 || columnEnd > 6 || rowEnd > 5 || row < 0) {
+            continue;
+        }
+        var pairs = getPair(row, column, [1,1]);
+        for(var j = 0; j < pairs.length; j++) {
+            count += games[room]['board'][pairs[j][0]][pairs[j][1]];
+        }
+        if(count == 4)
+            callback(1, pairs);
+        else if(count == -4)
+            callback(2, pairs);
+    }
+});
+
+
+check.push(function check_rightDiagonal(room, startRow, startColumn, callback) {
+    for(var i = 1; i < 5; i++) {
+        var count = 0;
+        var row = startRow + 1 - i;
+        var rowEnd = startRow + 4 - i;
+        var column = startColumn -1 + i;
+        var columnEnd = startColumn - 4 + i;
+        if(column < 0 || columnEnd > 6 || rowEnd > 5 || row < 0) {
+            continue;
+        }
+        var pairs = getPair(row, column, [1,-1]);
+        for(var j = 0; j < pairs.length; j++) {
+            count += games[room]['board'][pairs[j][0]][pairs[j][1]];
+        }
+        if(count == 4)
+            callback(1, pairs);
+        else if(count == -4)
+            callback(2, pairs);
+    }
+});
+
+// Function to check for draw
+function check_draw(room, callback) {
+    for(var val in games[room]['board'][0]) {
+        if(val == 0)
+            return;
+    }
+    callback();
+}
+
 // an object to hold all gamestates. Key denotes room id
 var games = {};
 
@@ -99,7 +203,45 @@ io.sockets.on('connection', function(socket) {
                         socket.emit('drop', {row: i, column: data.column, color: color});
                         results[1].emit('drop', {row: i, column: data.column, color: color});
                     });
+                    var win = false;
+                    check.forEach(function(method) {
+                        method(results[2], i, data.column, function(player, pairs) {
+                            win = true;
+                            if(player == 1) {
+                                games[results[2]].player1.emit('reset', {text: 'You Won!', 'inc': [1,0], highlight: pairs });
+                                games[results[2]].player2.emit('reset', {text: 'You Lost!', 'inc': [1,0], highlight: pairs });
+                            }
+                            else {
+                                games[results[2]].player1.emit('reset', {text: 'You Lost!', 'inc': [0,1], highlight: pairs });
+                                games[results[2]].player2.emit('reset', {text: 'You Won!', 'inc': [0,1], highlight: pairs });
+                            }
+                            games[results[2]].board = [[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0]];
+                        });
+                    });
+                    if(win) {
+                        return;
+                    }
+                    check_draw(results[2], function() {
+                        games[results[2]].board = [[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0]];
+                        io.sockets.in(results[2]).emit('reset', {'text': 'Game Drawn', 'inc': [0,0]});
+                    });
                 }
+            }
+        });
+    });
+
+    socket.on('continue', function() {
+        socket.get('turn', function(err, turn) {
+            socket.emit('notify', {connected: 1, turn: turn});
+        });
+    });
+
+    socket.on('disconnect', function() {
+        console.log('Disconnected');
+        socket.get('room', function(err, room) {
+            io.sockets.in(room).emit('leave');
+            if(room in games) {
+                delete games.room;
             }
         });
     });
