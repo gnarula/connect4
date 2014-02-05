@@ -1,0 +1,20 @@
+doctype html
+html(lang="en")
+    head
+        title Connect 4
+        link(rel='stylesheet', href='static/stylesheets/styles.css')
+    body
+        #wrap
+            nav.navbar.navbar-default(role='navigation')
+                .container-fluid
+                    .navbar-header
+                        a.navbar-brand(href='#') Connect 4
+            block content
+        #footer
+            .container
+                p.text-muted
+                    | Developed by
+                    | <a href="http://github.com/gnarula">Gaurav Narula</a> for Nettuts
+        block javascript
+            script(src='/socket.io/socket.io.js')
+            script(src='static/javascript/frontend.js')

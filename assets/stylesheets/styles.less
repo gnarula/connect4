@@ -37,3 +37,84 @@
 @import (less) "../../bower_components/alertify.js/themes/alertify.default.css";
 
 // Custom Styles
+
+/* Sticky Footer */
+html,
+body {
+  height: 100%;
+}
+
+/* Wrapper for page content to push down footer */
+#wrap {
+  min-height: 100%;
+  height: auto;
+  margin: 0 auto -60px;
+  padding: 0 0 60px;
+}
+
+#footer {
+  height: 60px;
+  background-color: #65BD77;
+  > .container {
+      padding-left: 15px;
+      padding-right: 15px;
+  }
+}
+
+.container .text-muted {
+    margin: 20px 0;
+    color: #fff;
+}
+
+// Grid
+table {
+    border-collapse: separate;
+    border-spacing: 10px 10px;
+}
+
+table tr {
+    margin: 10px;
+}
+
+table tr td {
+    width: 50px;
+    height: 50px;
+    border: 1px solid #3A87AD;
+}
+
+.center-table {
+  margin: 0 auto !important;
+  float: none !important;
+}
+
+.p1-score, .p2-score {
+    padding: 185px 0;
+    width: 50px;
+    height: 50px;
+    font-size: 25px;
+    line-height: 50px;
+    color: #fff;
+    text-align: center;
+}
+
+.p1-score {
+    float: right;
+    p {
+        background: #FFC333;
+        .current {
+            border: 5px solid darken(#FFC333, 10%);
+        }
+    }
+}
+
+.p2-score p {
+    background: #FB6B5B;
+    .current {
+        border: 5px solid darken(#FB6B5B, 10%);
+    }
+}
+
+.share-label {
+    line-height: 34px;
+    text-align: right;
+}

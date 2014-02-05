@@ -1,0 +1,17 @@
+extends layout
+
+block content
+    .container
+        .row
+            .col-xs-3
+                .p1-score
+                    p 0
+            #board.col-xs-6
+                table.center-table
+                .form-group
+                    label(for="shareUrl").col-sm-3.control-label.share-label Share URL:
+                    .col-sm-9
+                        input(type='text', data-room=share, name='shareUrl', value=shareURL ReadOnly).form-control
+            .col-xs-3
+                .p2-score
+                    p 0
