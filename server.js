@@ -123,13 +123,19 @@ check.push(function check_rightDiagonal(room, startRow, startColumn, callback) {
             callback(1, pairs);
         else if(count == -4)
             callback(2, pairs);
+        else {
+            check_draw(room, function() {
+                games[room].board = [[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0]];
+                io.sockets.in(room).emit('reset', {'text': 'Game Drawn', 'inc': [0,0]});
+            });
+        }
     }
 });
 
 // Function to check for draw
 function check_draw(room, callback) {
-    for(var val in games[room]['board'][0]) {
-        if(val == 0)
+    for(var index in games[room]['board'][0]) {
+        if(games[room]['board'][0][index] == 0)
             return;
     }
     callback();
@@ -206,7 +212,6 @@ io.sockets.on('connection', function(socket) {
                     var win = false;
                     check.forEach(function(method) {
                         method(results[2], i, data.column, function(player, pairs) {
-                            win = true;
                             if(player == 1) {
                                 games[results[2]].player1.emit('reset', {text: 'You Won!', 'inc': [1,0], highlight: pairs });
                                 games[results[2]].player2.emit('reset', {text: 'You Lost!', 'inc': [1,0], highlight: pairs });
@@ -217,13 +222,6 @@ io.sockets.on('connection', function(socket) {
                             }
                             games[results[2]].board = [[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0]];
                         });
-                    });
-                    if(win) {
-                        return;
-                    }
-                    check_draw(results[2], function() {
-                        games[results[2]].board = [[0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0], [0,0,0,0,0,0,0]];
-                        io.sockets.in(results[2]).emit('reset', {'text': 'Game Drawn', 'inc': [0,0]});
                     });
                 }
             }
